@@ -1,0 +1,354 @@
+:root {
+    --glitched-duration: 0.9s;
+    --glitched-long-duration: 3s;
+    --yellow-color: #f9f002;
+    --orange-color: #ff9800;
+    --border-color: #8ae66e;
+    --red-color: #ff003c;
+    --blue-color: #136377;
+    --green-color: #446d44;
+    --purple-color: purple;
+  }
+  
+  body {
+    background-color: var(--yellow-color);
+  }
+  
+  body * {
+    font-family: "Advent Pro", arial;
+  }
+  
+  /* Form fields */
+  
+  input[type="text"].cyberpunk,
+  textarea.cyberpunk {
+    width: calc(100% - 30px);
+    border: 30px solid #000;
+    border-left: 5px solid #000;
+    border-right: 5px solid #000;
+    border-bottom: 15px solid #000;
+    clip-path: polygon(
+      0px 25px,
+      26px 0px,
+      calc(60% - 25px) 0px,
+      60% 25px,
+      100% 25px,
+      100% calc(100% - 10px),
+      calc(100% - 15px) calc(100% - 10px),
+      calc(80% - 10px) calc(100% - 10px),
+      calc(80% - 15px) calc(100% - 0px),
+      10px calc(100% - 0px),
+      0% calc(100% - 10px)
+    );
+    margin-bottom: 10px;
+    padding: 12px;
+  }
+  
+  input[type="radio"].cyberpunk {
+    border-radius: 15%;
+    z-index: 100;
+    height: 14px;
+    width: 20px;
+    appearance: none;
+    outline: none;
+    background-color: #000;
+    cursor: pointer;
+    position: relative;
+    margin: 0px;
+    display: inline-block;
+  }
+  
+  input[type="radio"].cyberpunk:after {
+    content: "";
+    display: block;
+    width: 8px;
+    height: 6px;
+    background-color: var(--yellow-color);
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: background 0.3s, left 0.3s;
+  }
+  
+  input[type="radio"].cyberpunk:checked:after {
+    background-color: var(--border-color);
+    left: 10px;
+  }
+  
+  input[type="checkbox"].cyberpunk {
+    border-radius: 15%;
+    z-index: 100;
+    height: 20px;
+    width: 20px;
+    appearance: none;
+    outline: none;
+    background-color: #000;
+    cursor: pointer;
+    position: relative;
+    margin: 0px;
+    margin-bottom: -3px;
+    display: inline-block;
+  }
+  
+  input[type="checkbox"].cyberpunk:before {
+    content: "";
+    display: block;
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--yellow-color);
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    left: 4px;
+  }
+  
+  input[type="checkbox"].cyberpunk:after {
+    content: "";
+    display: block;
+    width: 2px;
+    height: 7px;
+    background-color: var(--yellow-color);
+    position: absolute;
+    top: 3px;
+    left: 9px;
+  }
+  
+  input[type="checkbox"].cyberpunk:checked:before {
+    border-color: var(--border-color);
+    border-top-color: transparent;
+  }
+  
+  input[type="checkbox"].cyberpunk:checked:after {
+    background-color: var(--border-color);
+  }
+  
+  /* Buttons and links */
+  
+  button.cyberpunk2077,
+  a.cyberpunk2077 {
+    --background-color: var(--red-color);
+    display: block;
+    border: none;
+    border-radius: 0%;
+    font-size: 1.5rem;
+    line-height: 1.5rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 35px 75px;
+    margin: 10px;
+    position: relative;
+    color: #fff;
+    border-right: 3px solid var(--border-color);
+    clip-path: polygon(
+      -15px 0%,
+      calc(100% + 15px) 0%,
+      calc(100% + 15px) 100%,
+      20px 100%,
+      -15px calc(100% - 35px)
+    );
+    cursor: pointer;
+    background-color: var(--background-color);
+    outline: none;
+    display: inline-block;
+  }
+  
+  button.cyberpunk2077:hover,
+  a.cyberpunk2077:hover,
+  button.cyberpunk2077:focus,
+  a.cyberpunk2077:focus {
+    animation-name: buttonhover;
+    animation-duration: var(--glitched-duration);
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+  
+  button.cyberpunk2077.green,
+  a.cyberpunk2077.green {
+    --background-color: var(--green-color);
+  }
+  
+  button.cyberpunk2077.purple,
+  a.cyberpunk2077.purple {
+    --background-color: var(--purple-color);
+  }
+  
+  button.cyberpunk2077.blue,
+  a.cyberpunk2077.blue {
+    --background-color: var(--blue-color);
+  }
+  
+  button.cyberpunk2077:after,
+  a.cyberpunk2077:after {
+    content: "R-25";
+    display: block;
+    position: absolute;
+    bottom: 0px;
+    right: 25px;
+    padding: 2px 2px 0px 2px;
+    font-size: 0.6rem;
+    line-height: 0.6rem;
+    color: #000;
+    background-color: var(--yellow-color);
+    border-left: 2px solid var(--border-color);
+  }
+  
+  button.cyberpunk2077:hover:after,
+  a.cyberpunk2077:hover:after,
+  button.cyberpunk2077:focus:after,
+  a.cyberpunk2077:focus:after {
+    animation-name: buttonhoverafter;
+    animation-duration: var(--glitched-duration);
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+  
+  button.cyberpunk2077:before,
+  a.cyberpunk2077:before {
+    --outside: 4px;
+    content: "";
+    position: absolute;
+    display: none;
+    background-color: var(--background-color);
+    width: calc(100% + (var(--outside) * 2));
+    height: 12px;
+    top: 0px;
+    left: calc(0px - 1px - var(--outside));
+    border-left: 2px solid var(--border-color);
+    border-right: 2px solid var(--border-color);
+  }
+  
+  button.cyberpunk2077:hover:before,
+  a.cyberpunk2077:hover:before,
+  button.cyberpunk2077:focus:before,
+  a.cyberpunk2077:focus:before {
+    display: block;
+    animation-name: buttonhoverbefore;
+    animation-duration: var(--glitched-duration);
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+  
+  @keyframes buttonhover {
+    0% {
+      transform: skew(0deg);
+    }
+    60% {
+      transform: skew(0deg);
+    }
+    61% {
+      transform: skew(10deg);
+    }
+    70% {
+      transform: skew(10deg);
+    }
+    71% {
+      transform: skew(0deg);
+    }
+    100% {
+      transform: skew(0deg);
+    }
+  }
+  
+  @keyframes buttonhoverbefore {
+    0% {
+      display: none;
+      top: 0px;
+    }
+    10% {
+      display: none;
+      top: 0px;
+    }
+    11% {
+      display: block;
+      top: 10px;
+      left: calc(0px - 0px - var(--outside));
+    }
+    29% {
+      top: 10px;
+    }
+    30% {
+      display: none;
+      top: 0px;
+    }
+    50% {
+      display: none;
+      top: 0px;
+    }
+    51% {
+      display: block;
+      top: 55px;
+      filter: blur(1px);
+      height: 22px;
+    }
+    90% {
+      display: block;
+      top: 55px;
+      height: 22px;
+    }
+    91% {
+      filter: blur(0px);
+      display: none;
+      top: 0px;
+      height: 12px;
+    }
+    100% {
+      display: none;
+      top: 0px;
+    }
+  }
+  
+  @keyframes buttonhoverafter {
+    0% {
+      right: 45px;
+    }
+  
+    10% {
+      right: 45px;
+    }
+    11% {
+      right: 35px;
+    }
+    20% {
+      transform: skew(0deg);
+    }
+    21% {
+      transform: skew(-10deg);
+    }
+    40% {
+      transform: skew(-10deg);
+    }
+    41% {
+      transform: skew(0deg);
+    }
+    49% {
+      right: 35px;
+    }
+    50% {
+      right: 55px;
+    }
+  
+    60% {
+      right: 55px;
+    }
+    61% {
+      right: 35px;
+    }
+    70% {
+      transform: skew(0deg);
+    }
+    71% {
+      transform: skew(10deg);
+    }
+    80% {
+      transform: skew(10deg);
+    }
+    81% {
+      transform: skew(0deg);
+    }
+    100% {
+      right: 35px;
+    }
+  }
+  
