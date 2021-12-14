@@ -5,9 +5,9 @@ let a = [];
 function deneme() {
   let b;
   let promise = new Promise((resolve, reject) => {
-    let dataBuffer = fs.readFileSync("C:\\Users\\mrtkr\\Desktop\\Deneme\\public\\uploads\\Murat_Karakurt_Tez.pdf");
+    let dataBuffer = fs.readFileSync("C:\\Users\\mrtkr\\Downloads\\Documents\\160202123_150201103_160202093.pdf");
     let options = {
-      max: 10,
+      max: 11,
     };
     pdf(dataBuffer, options).then(function (data) {
       b = data.text.split("\n");
@@ -30,7 +30,6 @@ function deneme() {
 }
 
 deneme();
-
 function get_info_user() {
   let no, name, surname;
   for (let index = 0; index < a.length; index++) {
@@ -85,18 +84,19 @@ function get_sumamry_and_keys() {
   for (let index = 0; index < a.length; index++) {
     const element = a[index];
     if (element.startsWith("ÖZET")) {
+      console.log("Özeti Buldu")
       count++;
       if (count == 2) {
         let temp_index = index + 1;
         for (let j = index; j < a.length; j++) {
           const t = a[j];
+          console.log(t)
           if(t.startsWith("Anahtar")){
             keys = t.split(":")[1]
             break
           }
           summary += t
         }
-        break;
       }
     }
   }
@@ -141,9 +141,9 @@ setTimeout(() => {
   console.log("ANahtar Kelimeler ", summary[1])
   let members = get_members()
   console.log("Members ", members)
- /*  for(let i = 11; i < 25; i++){
+/*   for(let i = 25; i < a.length; i++){
     console.log(a[i])
-  } */
+  }  */
 }, 1000);
 
 

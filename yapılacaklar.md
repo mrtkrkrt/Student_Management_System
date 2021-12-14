@@ -1,4 +1,4 @@
-* path hatasını düzelt
-* alınan bilgileri ilişkisel olarak database de tut
+* path hatasını düzelt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 * bir admin ekranı yap sorgu1 ve sorgu 2 olsun
-* sonra soruglara göre devam ederiz
+* user sayfasında sorgu yapabilecek 
+* admin sayfasında tüm projeleri görebilecek

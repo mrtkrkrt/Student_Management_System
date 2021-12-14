@@ -21,7 +21,7 @@ MongoClient.connect(url, function(err, db) {
   });   
 }); 
 */
-MongoClient.connect(url, function(err, db) {
+/* MongoClient.connect(url, function(err, db) {
   if (err) throw err;
   var dbo = db.db("mydb");
   var myobj = { username: "f", password: "f" };
@@ -31,7 +31,7 @@ MongoClient.connect(url, function(err, db) {
     db.close();
   });
 }); 
-
+ */
 /*  MongoClient.connect(url, function(err, db) {
   if (err) throw err;
   var dbo = db.db("mydb");
@@ -48,3 +48,35 @@ moongose.connect('mongodb://localhost/Temp', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }); */
+
+/* 
+MongoClient.connect(url, function(err, db) {
+  if (err) throw err;
+  var dbo = db.db("mydb");
+  dbo.createCollection("project", function(err, res) {
+    if (err) console.log("Collection already exist");
+    console.log("Collection created!");
+    db.close();
+  });   
+}); */
+
+
+MongoClient.connect(url, function(err, db) {
+  if (err) throw err;
+  var dbo = db.db("mydb");
+  dbo.createCollection("consultant", function(err, res) {
+    if (err) console.log("Collection already exist");
+    console.log("Collection created!");
+    db.close();
+  });   
+});
+
+MongoClient.connect(url, function(err, db) {
+  if (err) throw err;
+  var dbo = db.db("mydb");
+  dbo.createCollection("jury", function(err, res) {
+    if (err) console.log("Collection already exist");
+    console.log("Collection created!");
+    db.close();
+  });   
+});
