@@ -11,11 +11,11 @@
   body {
     display: flex;
     align-items: center;
-    flex-direction: column;
+    flex-direction: column; 
     justify-content: center;
     min-height: 100vh;
     font-family: 'Cyber', sans-serif;
-    background: linear-gradient(90deg, #f5ed00 70%, #e6de00 70%), #fff700;
+    background: linear-gradient(90deg, #f4f3ef 70%, #bebebd 70%), #8f8d8d;
   }
   
   body .cybr-btn + .cybr-btn {

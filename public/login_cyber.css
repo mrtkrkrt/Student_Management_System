@@ -8,10 +8,11 @@
     --blue-color: #136377;
     --green-color: #446d44;
     --purple-color: purple;
+    --gray-color : #f4f3ef;
   }
   
   body {
-    background-color: var(--yellow-color);
+    background-color: var(--gray-color);
   }
   
   body * {

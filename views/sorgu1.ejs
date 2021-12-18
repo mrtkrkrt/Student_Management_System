@@ -13,31 +13,34 @@
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet" />
   <link href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/public/list_items.css">
+  <link rel="stylesheet" href="/public/list_items.css">
   <!-- CSS Files -->
   <link href="/public/assets/css/bootstrap.min.css" rel="stylesheet" />
   <link href="/public/assets/css/paper-dashboard.css?v=2.0.1" rel="stylesheet" />
   <!-- CSS Just for demo purpose, don't include it in your project -->
   <link href="/public/assets/demo/demo.css" rel="stylesheet" />
+  <link rel="stylesheet" href="sorgu1_css.css">
 </head>
 
 <body class="">
   <div class="wrapper ">
     <div class="sidebar" data-color="white" data-active-color="danger">
       <div class="logo">
-        <a href="https://www.creative-tim.com" class="simple-text logo-mini">
+        <a href="" class="simple-text logo-mini">
         </a>
-        <a href="https://www.creative-tim.com" class="simple-text logo-normal">
+        <a href="" class="simple-text logo-normal">
         </a>
       </div>
       <div class="sidebar-wrapper">
         <ul class="nav">
-          <li class="active ">
+          <li >
             <a href="/user_page">
               <i class="nc-icon nc-bank"></i>
               <p>Ödev Yükle</p>
             </a>
           </li>
-          <li>
+          <li class="active ">
             <a href="/sorgu_1">
               <i class="nc-icon nc-diamond"></i>
               <p>Sorgu 1</p>
@@ -45,7 +48,7 @@
           </li>
           <li>
             <a href="/sorgu_2">
-              <i class="nc-icon nc-pin-3"></i>
+              <i class="nc-icon nc-diamond"></i>
               <p>Sorgu 2</p>
             </a>
           </li>
@@ -61,7 +64,7 @@
     <div class="main-panel" style="height: 100vh;">
       <!-- Navbar -->
        <nav class="navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
-        <div class="container-fluid">
+        <div class="container">
           <div class="navbar-wrapper">
             <div class="navbar-toggle">
               <button type="button" class="navbar-toggler">
@@ -87,16 +90,46 @@
                   </p>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                  <a class="dropdown-item" href="#">Çıkış Yap</a>
+                  <a class="dropdown-item" href="/">Çıkış Yap</a>
                 </div>
               </li>
             </ul>
           </div> 
-        </nav>
-        </div>
+       </nav>  
+       <div class="container">
+        <div class="row">
+          <div class="col-sm-4 input-s1" >
+            <div style=" text-align: start;">
+              <form action="/search_project_sorgu_1" method="post">             
+                <p>Proje Adı: <input type="text" style="margin-top: 150px; border-style: hidden; " name="lecture_name" placeholder="DevOps etc."></p>
+                <p>Ders Adı: <input type="text" style=" border-style: hidden; " name="project_name" placeholder="Araştırma Problemleri etc."></p>
+                <p>Anahtar Kelime: <input type="text" style=" border-style: hidden; " name="keys" placeholder="Virgülle Ayırınız!"></p>
+                <button type="submit" class="btn btn-secondary">Ara</button>
+              </form>
+          </div>
+          </div>
+        </div>   
       </div>
+      <ul class="tilesWrap">
+        <% for(let i = 0; i < search_result.length; i++) { %>
+        <li>
+          <h2><%= i + 1 %></h2>
+          <h3><%= search_result[i].title %></h3>
+          <p>
+            <%= search_result[i].date %>
+          </p>
+          <p>
+            <%= search_result[i].keys %>
+          </p>
+          <form action="/project" method="post">
+            <button type="submit" name= "<%= search_result[i]._id %>">Ayrıntıları Görüntüle</button>
+          </form>
+        </li>
+        <% } %>
+      </ul>
     </div>
   </div>
+ 
   <!--   Core JS Files   -->
   <script src="/public/assets/js/core/jquery.min.js"></script>
   <script src="/public/assets/js/core/popper.min.js"></script>
