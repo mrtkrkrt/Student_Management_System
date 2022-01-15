@@ -14,6 +14,7 @@ const port = 3000;
 var MongoClient = require("mongodb").MongoClient;
 const res = require("express/lib/response");
 const { ObjectID } = require("mongodb");
+const { resolve } = require("path/posix");
 var url =
   "mongodb+srv://admin:a@muratkarakurt.9ergo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 let db = 0,
@@ -57,153 +58,152 @@ app.get("/admin_page", async (req, res) => {
 });
 
 app.post("/analyse_file", (req, res) => {
-  const path = "public/uploads";
+  let path = "public/uploads";
+  let jury_infos = [];
   if (!fs.existsSync(path)) fs.mkdirSync(path);
   let uploadedPDF = req.files.pdf;
-  let PdfPath =
-    "C:/Users/mrtkr/Desktop/Deneme" + "/public/uploads/" + uploadedPDF.name;
-  uploadedPDF.mv(PdfPath);
-  let jury_infos = [];
-  extract_infos(uploadedPDF.name);
-  setTimeout(() => {
-    let inf = get_info_user();
-    console.log("Yazar Bilgileri", inf);
-    let lecture_name = get_lecture_name();
-    console.log("Ders Adı", lecture_name[0]);
-    console.log("Proje Başlığı ", lecture_name[1]);
-    let date = get_lecture_date();
-    console.log("Teslim Tarihi", date);
-    let summary = get_sumamry_and_keys();
-    console.log("Özet => ", summary[0]);
-    console.log("Anahtar Kelimeler ", summary[1]);
-    let members = get_members();
-    console.log("Members ", members);
-    if (uploadedPDF) {
-      setTimeout(() => {
-        //Datbase e kayıt işlemi id_temp ile kayıt yapabilrisin
-        MongoClient.connect(url, (err, db) => {
-          if (err) throw err;
-          var dbo = db.db("mydb");
-          var myobj = {
-            userId: id_temp,
-            name: lecture_name[0],
-            title: lecture_name[1],
-            date: date,
-            summary: summary[0],
-            keys: summary[1],
-            path: PdfPath,
-          };
-          dbo.collection("project").insertOne(myobj, (err, res) => {
+  let PdfPath = "C:/Users/mrtkr/Desktop/PDF-main/" + uploadedPDF.name;
+
+  uploadedPDF.mv(PdfPath, (err) => {
+    let b;
+    let sj = __dirname + "/" + uploadedPDF.name;
+    console.log("Path", sj);
+    let dataBuffer = fs.readFileSync(sj);
+    let options = {
+      max: 10,
+    };
+    pdf_parse(dataBuffer, options).then(function (data) {
+      b = data.text.split("\n");
+      for (let i = 0; i < b.length; i++) {
+        let temp = b[i].trim();
+        b[i] = temp;
+      }
+      b = b.filter((e) => e);
+      a = b;
+      let inf = get_info_user();
+      console.log("Yazar Bilgileri", inf);
+      let lecture_name = get_lecture_name();
+      console.log("Ders Adı", lecture_name[0]);
+      console.log("Proje Başlığı ", lecture_name[1]);
+      let date = get_lecture_date();
+      console.log("Teslim Tarihi", date);
+      let summary = get_sumamry_and_keys();
+      console.log("Özet => ", summary[0]);
+      console.log("Anahtar Kelimeler ", summary[1]);
+      let members = get_members();
+      console.log("Members ", members);
+      if (uploadedPDF) {
+        let promise = new Promise((resolve, reject) => {
+          MongoClient.connect(url, (err, db) => {
             if (err) throw err;
-            project_id = res["insertedId"].toString();
-            console.log(project_id);
-            console.log("Project inserted.");
-            db.close();
-          });
-        });
-      }, 500);
-      setTimeout(() => {
-        MongoClient.connect(url, function (err, db) {
-          if (err) throw err;
-          var dbo = db.db("mydb");
-          var myquery = { username: username_temp };
-          var newvalues = {
-            $set: { name: inf[1], surname: inf[2], no: parseInt(inf[0]) },
-          };
-          dbo
-            .collection("user")
-            .updateOne(myquery, newvalues, function (err, res) {
+            var dbo = db.db("mydb");
+            var myobj = {
+              userId: id_temp,
+              name: lecture_name[0],
+              title: lecture_name[1],
+              date: date,
+              summary: summary[0],
+              keys: summary[1],
+              path: PdfPath,
+            };
+            dbo.collection("project").insertOne(myobj, (err, res) => {
               if (err) throw err;
-              console.log("1 user updated");
+              project_id = res["insertedId"].toString();
+              console.log(project_id);
+              console.log("Project inserted.");
+              resolve();
               db.close();
             });
-        });
-      }, 500);
-      setTimeout(() => {
-        let consultant_info, consultant_name, consultant_degree;
-        for (let i = 0; i < members.length; i++) {
-          if (members[i][0].startsWith("Danışman")) {
-            consultant_info = members[i];
-            members.splice(i, 1);
-          }
-        }
-
-        if (consultant_info.includes("Üyesi")) {
-          consultant_name = consultant_info[1].split("Üyesi")[1];
-          consultant_degree = consultant_info[1].split("Üyesi")[0];
-        } else {
-          consultant_name = consultant_info[1].split(". ")[1];
-          consultant_degree = consultant_info[1].split(". ")[0];
-        }
-
-        let consultant_school = consultant_info[0].split(",")[1];
-
-        MongoClient.connect(url, (err, db) => {
-          if (err) throw err;
-          var dbo = db.db("mydb");
-          var myobj = {
-            projectID: project_id,
-            name: consultant_name,
-            degree: consultant_degree,
-            school: consultant_school,
-          };
-          dbo.collection("consultant").insertOne(myobj, (err, res) => {
-            if (err) throw err;
-            console.log("consultant inserted.");
-            db.close();
           });
-        });
-      }, 750);
-      setTimeout(() => {
-        let jury_school, jury_name, jury_degree;
-        for (let i = 0; i < members.length; i++) {
-          jury_school = members[i][0].split(",")[1];
-          if (members[i][1].includes("Üyesi")) {
-            jury_name = members[i][1].split("Üyesi")[1];
-            jury_degree = members[i][1].split("Üyesi")[0];
-          } else {
-            jury_name = members[i][1].split(". ")[1];
-            jury_degree = members[i][1].split(". ")[0];
-          }
-          jury_infos.push([jury_name, jury_school, jury_degree]);
-        }
-      }, 750);
+          
+        })
+          .then(() => {
+            let consultant_info, consultant_name, consultant_degree;
+            for (let i = 0; i < members.length; i++) {
+              if (members[i][0].startsWith("Danışman")) {
+                consultant_info = members[i];
+                members.splice(i, 1);
+              }
+            }
+            if (consultant_info.includes("Üyesi")) {
+              consultant_name = consultant_info[1].split("Üyesi")[1];
+              consultant_degree = consultant_info[1].split("Üyesi")[0];
+            } else {
+              consultant_name = consultant_info[1].split(". ")[1];
+              consultant_degree = consultant_info[1].split(". ")[0];
+            }
 
-      setTimeout(() => {
-        MongoClient.connect(url, (err, db) => {
-          if (err) throw err;
-          var dbo = db.db("mydb");
-          var myobj = {
-            projectID: project_id,
-            name: jury_infos[0][0],
-            degree: jury_infos[0][2],
-            school: jury_infos[0][1],
-          };
-          dbo.collection("jury").insertOne(myobj, (err, res) => {
-            if (err) throw err;
-            console.log("jury inserted.");
-            db.close();
-          });
-        });
-        MongoClient.connect(url, (err, db) => {
-          if (err) throw err;
-          var dbo = db.db("mydb");
-          var myobj = {
-            projectID: project_id,
-            name: jury_infos[1][0],
-            degree: jury_infos[1][2],
-            school: jury_infos[1][1],
-          };
-          dbo.collection("jury").insertOne(myobj, (err, res) => {
-            if (err) throw err;
-            console.log("jury inserted.");
-            db.close();
-          });
-        });
-      }, 750);
-    }
-    console.log("Bitti");
-    res.redirect("/user_page");
+            let consultant_school = consultant_info[0].split(",")[1];
+
+            MongoClient.connect(url, (err, db) => {
+              if (err) throw err;
+              var dbo = db.db("mydb");
+              var myobj = {
+                projectID: project_id,
+                name: consultant_name,
+                degree: consultant_degree,
+                school: consultant_school,
+              };
+              dbo.collection("consultant").insertOne(myobj, (err, res) => {
+                if (err) throw err;
+                console.log("consultant inserted.");
+                db.close();
+              });
+            });
+          })
+          .then(() => {
+            let jury_school, jury_name, jury_degree;
+            for (let i = 0; i < members.length; i++) {
+              jury_school = members[i][0].split(",")[1];
+              if (members[i][1].includes("Üyesi")) {
+                jury_name = members[i][1].split("Üyesi")[1];
+                jury_degree = members[i][1].split("Üyesi")[0];
+              } else {
+                jury_name = members[i][1].split(". ")[1];
+                jury_degree = members[i][1].split(". ")[0];
+              }
+              jury_infos.push([jury_name, jury_school, jury_degree]);
+            }
+          })
+          .then(() => {
+            MongoClient.connect(url, (err, db) => {
+              if (err) throw err;
+              var dbo = db.db("mydb");
+              var myobj = {
+                projectID: project_id,
+                name: jury_infos[0][0],
+                degree: jury_infos[0][2],
+                school: jury_infos[0][1],
+              };
+              dbo.collection("jury").insertOne(myobj, (err, res) => {
+                if (err) throw err;
+                console.log("jury inserted.");
+                db.close();
+              });
+            });
+          })
+          .then(() => {
+            MongoClient.connect(url, (err, db) => {
+              if (err) throw err;
+              var dbo = db.db("mydb");
+              var myobj = {
+                projectID: project_id,
+                name: jury_infos[1][0],
+                degree: jury_infos[1][2],
+                school: jury_infos[1][1],
+              };
+              dbo.collection("jury").insertOne(myobj, (err, res) => {
+                if (err) throw err;
+                console.log("jury inserted.");
+                db.close();
+              });
+            });
+          })
+          .then(() => {
+            res.redirect("/user_page");
+          })
+      }
+    });
   });
 });
 
@@ -243,7 +243,7 @@ app.post("/middleware", async (req, res) => {
               user_info = result[0];
               id = String(result[0]._id);
               id_temp = id;
-              resolve("");
+              resolve();
             }
           });
       });
@@ -278,26 +278,27 @@ app.get("/sorgu_2", (req, res) => {
 app.get("/homeworks", (req, res) => {
   let search_result = [];
 
-  MongoClient.connect(url, function (err, db) {
-    if (err) throw err;
-    var dbo = db.db("mydb");
-    var query = { userId: id_temp };
-    dbo
-      .collection("project")
-      .find(query)
-      .toArray(function (err, result) {
-        if (err) throw err;
-        search_result = result;
-        db.close();
-      });
-  });
-
-  setTimeout(() => {
-    console.log(search_result);
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var query = { userId: id_temp };
+      dbo
+        .collection("project")
+        .find(query)
+        .toArray(function (err, result) {
+          if (err) throw err;
+          search_result = result;
+          resolve();
+          db.close();
+        });
+    });
+    
+  }).then(() => {
     res.render("homeworks", {
       search_result,
     });
-  }, 1000);
+  });
 });
 
 app.post("/search_project_sorgu_1", (req, res) => {
@@ -310,21 +311,23 @@ app.post("/search_project_sorgu_1", (req, res) => {
   let keys = req.body.keys;
   if (keys != "") result_json["keys"] = keys.toLowerCase();
 
-  MongoClient.connect(url, function (err, db) {
-    if (err) throw err;
-    var dbo = db.db("mydb");
-    var query = { userId: id_temp };
-    dbo
-      .collection("project")
-      .find(query)
-      .toArray(function (err, result) {
-        if (err) throw err;
-        search_result = result;
-        db.close();
-      });
-  });
-
-  setTimeout(() => {
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var query = { userId: id_temp };
+      dbo
+        .collection("project")
+        .find(query)
+        .toArray(function (err, result) {
+          if (err) throw err;
+          search_result = result;
+          resolve();
+          db.close();
+        });
+    });
+    
+  }).then(() => {
     let i = 0;
     if (keys != "") {
       console.log("Key Arıyo");
@@ -381,7 +384,7 @@ app.post("/search_project_sorgu_1", (req, res) => {
     res.render("sorgu1", {
       search_result,
     });
-  }, 2000);
+  });
 });
 
 app.post("/search_project_sorgu_2", (req, res) => {
@@ -390,20 +393,25 @@ app.post("/search_project_sorgu_2", (req, res) => {
   let month = season.split(" ")[1],
     year = season.split(" ")[0];
 
-  MongoClient.connect(url, function (err, db) {
-    if (err) throw err;
-    var dbo = db.db("mydb");
-    var query = { userId: id_temp };
-    dbo
-      .collection("project")
-      .find(query)
-      .toArray(function (err, result) {
-        if (err) throw err;
-        search_result = result;
-        db.close();
-      });
-  });
-  setTimeout(() => {
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var query = { userId: id_temp };
+      dbo
+        .collection("project")
+        .find(query)
+        .toArray(function (err, result) {
+          if (err) throw err;
+          search_result = result;
+          resolve();
+          db.close();
+        });
+    });
+    console.log("Sorgulama bitti")
+    
+  }).then(() => {
+    console.log("Sorgulama Başladı")
     console.log("b", search_result);
     let i = 0;
     if (season != "") {
@@ -423,46 +431,89 @@ app.post("/search_project_sorgu_2", (req, res) => {
         i++;
       }
     }
-    console.log("2.Sorug sonucu " , search_result)
+    console.log("2.Sorug sonucu ", search_result);
     res.render("sorgu2", {
       search_result,
     });
-  }, 2000);
+  });
 });
 
 app.post("/add_user", (req, res) => {
   let temp_username = req.body.username;
   let temp_pass = req.body.password;
 
-  MongoClient.connect(url, function (err, db) {
-    if (err) throw err;
-    var dbo = db.db("mydb");
-    var myobj = { username: temp_username, password: temp_pass };
-    dbo.collection("user").insertOne(myobj, function (err, res) {
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
       if (err) throw err;
-      console.log("1 document inserted");
-      db.close();
+      var dbo = db.db("mydb");
+      var myobj = { username: temp_username, password: temp_pass };
+      dbo.collection("user").insertOne(myobj, function (err, res) {
+        if (err) throw err;
+        console.log("1 document inserted");
+        resolve();
+        db.close();
+      });
     });
-  });
-  setTimeout(() => {
+    
+  }).then(() => {
     res.render("admin_page", {
       username: username_temp,
       id: id_temp,
     });
-  }, 500);
+  });
 });
 
 app.get("/admin_user_delete", (req, res) => {
-  res.render("admin_user_delete", {
-    username: username_temp,
-    id: id_temp,
+  let search_result = [];
+
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      dbo
+        .collection("user")
+        .find({})
+        .toArray(function (err, result) {
+          if (err) throw err;
+          search_result = result;
+          resolve();
+          db.close();
+        });
+    });
+    
+  }).then(() => {
+    res.render("admin_user_delete", {
+      username: username_temp,
+      id: id_temp,
+      search_result,
+    });
   });
 });
 
 app.get("/admin_user_update", (req, res) => {
-  res.render("admin_user_update", {
-    username: username_temp,
-    id: id_temp,
+  let search_result = [];
+
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      dbo
+        .collection("user")
+        .find({})
+        .toArray(function (err, result) {
+          if (err) throw err;
+          search_result = result;
+          resolve();
+          db.close();
+        });
+    });
+    
+  }).then(() => {
+    res.render("admin_user_update", {
+      username: username_temp,
+      id: id_temp,
+      search_result,
+    });
   });
 });
 
@@ -482,27 +533,28 @@ app.post("/admin_search_sorgu_1", (req, res) => {
   let input_username = req.body.input_username,
     user_find = false;
   if (input_username != "") result_json["username"] = input_username;
-  let user_temp_id;
+  let user_temp_id, keys_temp = "", lecture_name_temp = "", project_name_temp = "";
 
-  MongoClient.connect(url, function (err, db) {
-    if (err) throw err;
-    var dbo = db.db("mydb");
-    var query = { username: input_username };
-    dbo
-      .collection("user")
-      .find(query)
-      .toArray(function (err, result) {
-        if (err) throw err;
-        if (result.length > 0) {
-          console.log("Sonuç Var!!");
-          user_find = true;
-          user_temp_id = result[0]._id + "";
-        }
-        db.close();
-      });
-  });
-
-  setTimeout(() => {
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var query = { username: input_username };
+      dbo
+        .collection("user")
+        .find(query)
+        .toArray(function (err, result) {
+          if (err) throw err;
+          if (result.length > 0) {
+            console.log("Sonuç Var!!");
+            user_find = true;
+            user_temp_id = result[0]._id + "";
+          }
+          resolve();
+          db.close();
+        });
+    });
+  }).then(() => {
     if (!user_find) {
       console.log("Boş Dönüş yapıyo");
       res.render("admin_sorgu_1", {
@@ -512,10 +564,13 @@ app.post("/admin_search_sorgu_1", (req, res) => {
       });
     } else {
       let project_name = req.body.project_name;
+      project_name_temp = project_name
       if (project_name != "") result_json["name"] = project_name;
       let lecture_name = req.body.lecture_name;
+      lecture_name_temp = lecture_name_temp
       if (lecture_name != "") result_json["title"] = lecture_name;
       let keys = req.body.keys;
+      keys_temp = keys
       if (keys != "") result_json["keys"] = keys.toLowerCase();
 
       MongoClient.connect(url, function (err, db) {
@@ -529,69 +584,77 @@ app.post("/admin_search_sorgu_1", (req, res) => {
             if (err) throw err;
             if (search_result.length > 0) console.log("Proje Sonucu Var");
             search_result = result;
+            console.log("Bulunan Sonuç BURDA")
             db.close();
           });
       });
-
-      setTimeout(() => {
-        let i = 0;
-        if (keys != "") {
-          while (i < search_result.length) {
-            let key_array = keys.split(",");
-            key_array.map((s) => s.trim());
-            key_array.map((s) => s.toLowerCase());
-            let temp = false;
-            let input_keys = search_result[i].keys.split(",");
-            input_keys.map((s) => s.trim());
-            input_keys.map((s) => s.toLowerCase());
-            for (let j = 0; j < input_keys.length; j++) {
-              if (key_array.includes(input_keys[j].substring(1))) {
-                temp = true;
-              }
-            }
-            if (!temp) {
-              search_result.splice(i, 1);
-              i -= 1;
-            }
-            i++;
-          }
-        }
-        i = 0;
-        if (project_name != "") {
-          while (i < search_result.length) {
-            if (
-              !search_result[i].name
-                .toLowerCase()
-                .includes(project_name.toLowerCase())
-            ) {
-              search_result.splice(i, 1);
-              i -= 1;
-            }
-            i++;
-          }
-        }
-        i = 0;
-        if (lecture_name != "") {
-          while (i < search_result.length) {
-            if (
-              !search_result[i].title
-                .toLowerCase()
-                .includes(lecture_name.toLowerCase())
-            ) {
-              search_result.splice(i, 1);
-              i -= 1;
-            }
-            i++;
-          }
-        }
-        res.render("admin_sorgu_1", {
-          username: username_temp,
-          id: id_temp,
-          search_result,
-        });
-      }, 1000);
+      console.log("İkinci Bitti")
     }
-  }, 5000);
+  }).finally(() => {
+    setTimeout(() => {
+      console.log(keys_temp, lecture_name_temp, project_name_temp)
+      console.log("Üçünüc başladı")
+      let i = 0;
+      if (keys_temp != "") {
+        while (i < search_result.length) {
+          let key_array = keys_temp.split(",");
+          key_array.map((s) => s.trim());
+          key_array.map((s) => s.toLowerCase());
+          let temp = false;
+          let input_keys = search_result[i].keys.split(",");
+          input_keys.map((s) => s.trim());
+          input_keys.map((s) => s.toLowerCase());
+          for (let j = 0; j < input_keys.length; j++) {
+            if (key_array.includes(input_keys[j].substring(1))) {
+              temp = true;
+            }
+          }
+          if (!temp) {
+            search_result.splice(i, 1);
+            i -= 1;
+          }
+          i++;
+        }
+      }
+      console.log(search_result)
+      i = 0;
+      if (project_name_temp != "") {
+        while (i < search_result.length) {
+          if (
+            !search_result[i].name
+              .toLowerCase()
+              .includes(project_name_temp.toLowerCase())
+          ) {
+            search_result.splice(i, 1);
+            i -= 1;
+          }
+          i++;
+        }
+      }
+      console.log(search_result)
+      i = 0;
+      if (lecture_name_temp != "") {
+        while (i < search_result.length) {
+          if (
+            !search_result[i].title
+              .toLowerCase()
+              .includes(lecture_name_temp.toLowerCase())
+          ) {
+            search_result.splice(i, 1);
+            i -= 1;
+          }
+          i++;
+        }
+      }
+      console.log(search_result)
+      res.render("admin_sorgu_1", {
+        username: username_temp,
+        id: id_temp,
+        search_result,
+      });
+    }, 2000)
+    
+  })
 });
 
 app.get("/admin_sorgu_2", (req, res) => {
@@ -616,25 +679,26 @@ app.post("/admin_search_sorgu_2", (req, res) => {
     year = season.split(" ")[0];
   }
 
-  MongoClient.connect(url, function (err, db) {
-    if (err) throw err;
-    var dbo = db.db("mydb");
-    var query = { username: input_username };
-    dbo
-      .collection("user")
-      .find(query)
-      .toArray(function (err, result) {
-        if (err) throw err;
-        if (result.length > 0) {
-          console.log("Kullanıcı Buldı");
-          user_find = true;
-          user_temp_id = result[0]._id + "";
-        }
-        db.close();
-      });
-  });
-
-  setTimeout(() => {
+  let promise =new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var query = { username: input_username };
+      dbo
+        .collection("user")
+        .find(query)
+        .toArray(function (err, result) {
+          if (err) throw err;
+          if (result.length > 0) {
+            console.log("Kullanıcı Buldı");
+            user_find = true;
+            user_temp_id = result[0]._id + "";
+          }
+          resolve()
+          db.close();
+        });
+    });
+  }).then(() => {
     if (!user_find) {
       console.log("Kullanıcı İsmi BOş");
       res.render("admin_sorgu_2", {
@@ -656,73 +720,171 @@ app.post("/admin_search_sorgu_2", (req, res) => {
             db.close();
           });
       });
-      setTimeout(() => {
-        let i = 0;
-        if (season != "") {
-          while (i < search_result.length) {
-            let temp_year = search_result[i].date.split(" ")[0],
-              temp_season = search_result[i].date.split(" ")[1];
-            if (
-              temp_year == year &&
-              temp_season.toLowerCase().trim() == month.toLowerCase().trim()
-            ) {
-            } else {
-              search_result.splice(i, 1);
-              i -= 1;
-            }
-            i++;
-          }
-        }
-        res.render("admin_sorgu_2", {
-          username: username_temp,
-          id: id_temp,
-          search_result,
-        });
-      }, 1000);
     }
-  }, 3000);
+  }).finally(() => {
+    setTimeout(() => {
+      let i = 0;
+      if (season != "") {
+        while (i < search_result.length) {
+          let temp_year = search_result[i].date.split(" ")[0],
+            temp_season = search_result[i].date.split(" ")[1];
+          if (
+            temp_year == year &&
+            temp_season.toLowerCase().trim() == month.toLowerCase().trim()
+          ) {
+          } else {
+            search_result.splice(i, 1);
+            i -= 1;
+          }
+          i++;
+        }
+      }
+      res.render("admin_sorgu_2", {
+        username: username_temp,
+        id: id_temp,
+        search_result,
+      });
+    }, 2000)
+  })
 });
 
 app.post("/project", (req, res) => {
   let search_result = [];
   var project_id = Object.keys(req.body)[0];
   console.log(project_id);
-  MongoClient.connect(url, function (err, db) {
-    if (err) throw err;
-    var dbo = db.db("mydb");
-    var query = { _id: new ObjectID(project_id) };
-    dbo
-      .collection("project")
-      .find(query)
-      .toArray(function (err, result) {
-        if (err) throw err;
-        if (result.length > 0) console.log(result[0].path);
-        search_result = result;
-        db.close();
-      });
-  });
-  setTimeout(() => {
+
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var query = { _id: new ObjectID(project_id) };
+      dbo
+        .collection("project")
+        .find(query)
+        .toArray(function (err, result) {
+          if (err) throw err;
+          if (result.length > 0) console.log(result[0].path);
+          search_result = result;
+          resolve();
+          db.close();
+        });
+    });
+    
+  }).then(() => {
     let new_path = "/";
     if (search_result[0].path) {
       for (let k = 5; k < search_result[0].path.split("/").length; k++) {
         new_path += search_result[0].path.split("/")[k];
-        if(k != search_result[0].path.split("/").length - 1) new_path += "/"
+        if (k != search_result[0].path.split("/").length - 1) new_path += "/";
       }
     }
-    //console.log(search_result)
     res.render("project", {
       search_result,
       new_path,
     });
-  }, 2000);
+  });
+});
+
+app.post("/delete", (req, res) => {
+  let search_result = [];
+
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var myquery = { _id: new ObjectID(Object.keys(req.body)[0]) };
+      dbo.collection("user").deleteOne(myquery, function (err, obj) {
+        if (err) throw err;
+        console.log("1 document deleted");
+        resolve();
+        db.close();
+      });
+    });
+  
+  })
+    .then(() => {
+      MongoClient.connect(url, function (err, db) {
+        if (err) throw err;
+        var dbo = db.db("mydb");
+        dbo
+          .collection("user")
+          .find({})
+          .toArray(function (err, result) {
+            if (err) throw err;
+            search_result = result;
+            db.close();
+          });
+      });
+    })
+    .then(() => {
+      res.render("admin_user_delete", {
+        username: username_temp,
+        id: id_temp,
+        search_result,
+      });
+    });
+});
+
+app.post("/update", (req, res) => {
+  let id = Object.keys(req.body)[0];
+  let search_result = [];
+
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var query = { _id: new ObjectId(id) };
+      dbo
+        .collection("user")
+        .find(query)
+        .toArray(function (err, result) {
+          if (err) throw err;
+          search_result = result;
+          console.log(result);
+          resolve();
+          db.close();
+        });
+    });
+    
+  }).then(() => {
+    res.render("user_update", {
+      search_result,
+    });
+  });
+});
+
+app.post("/update_user", (req, res) => {
+  let username = req.body.username,
+    id = req.body.id,
+    password = req.body.password;
+
+  let promise = new Promise((resolve, reject) => {
+    MongoClient.connect(url, function (err, db) {
+      if (err) throw err;
+      var dbo = db.db("mydb");
+      var myquery = { _id: new ObjectId(id) };
+      var newvalues = { $set: { username: username, password: password } };
+      dbo.collection("user").updateOne(myquery, newvalues, function (err, res) {
+        if (err) throw err;
+        console.log("1 document updated");
+        resolve();
+        db.close();
+      });
+    });
+    
+  }).then(() => {
+    res.redirect("/admin_user_update");
+  });
 });
 
 app.listen(port);
 
 function extract_infos(path) {
   let b;
+  console.log("PATH => ", path);
   let promise = new Promise((resolve, reject) => {
-    let sj = "C:\\Users\\mrtkr\\Desktop\\Deneme\\public\\uploads\\" + path;
+    let sj = __dirname + "/public/uploads/" + path;
+    console.log(sj);
     let dataBuffer = fs.readFileSync(sj);
     let options = {
       max: 10,
