@@ -1,9 +1,33 @@
 # Student_Management_System
- Simple student management system where you can upload pdf for review from your teacher and By the side of teacher, teacher can review and view pdf and infos extract from uploaded pdf's.
+Student Management System
+Description
+This project is a web-based student management system that allows users to manage student information, including student enrollment, grade tracking, and attendance. The system is built using the following technologies:
 
- * Express.js
- * mongodb
- * pdf-parse
+* Front-end: HTML, CSS, JavaScript
+* Back-end: Node.js, Express.js
+* Database: MongoDB
+
+Features
+* User authentication and authorization
+* Student enrollment and management
+* Grade tracking and reporting
+* Attendance tracking and reporting
+* User-friendly interface
+
+Installation
+* To run this project locally, you will need to have Node.js and MongoDB installed on your machine.
+* Clone the repository: git clone https://github.com/mrtkrkrt/Student_Management_System.git
+* Install the dependencies: npm install
+* Start the server: npm start
+* Visit http://localhost:3000 in your browser to access the application
+
+Usage
+* Register as a new user or log in as an existing user.
+* Once logged in, you will be able to access the different features of the system.
+* To manage students, click on the "Students" menu option.
+* To manage grades, click on the "Grades" menu option.
+* To manage attendance, click on the "Attendance" menu option.
+
 
 ## Some Screenshots from Project
 
